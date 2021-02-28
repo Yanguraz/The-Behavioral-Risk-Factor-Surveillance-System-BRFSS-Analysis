@@ -1,0 +1,156 @@
+---
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+
+
+### Load data
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+* * *
+
+## Part 1: Data
+The behavioral Risk Factor Surveillance System (BRFSS) is a collaborative project between all of the states in the United States( US) and participating US territories and the Centers for Disease Control and Prevention (CDC). It's major objective is to collect uniform, state-specific data on preventive health practices and risk behaviors that are linked to chronic diseases, injuries, and preventable infectious diseases that affect the adult population.
+       
+1) **What is our data about**?
+
+ Answer: Our data is a complete survey conducted by BRFSS regarding the health status of the adult US citizens and their health related issues. The data has sum of 330 variables, which are used as metrics for estimation. Total of participants constitutes *491775*.
+
+2) **Why is this data collected**?
+
+ Answer: This data is helpful for BRFSS for studying and analyzing several factors that are responsible for health conditions of adult US citizens.
+ 
+3) **Mode of data collection**:
+
+  The survey is conducted using Random Digit Dialing (RDD) techniques on both landlines and cell phones.    
+  a) * Essentially, the landlines were conducted in Disproportionate stratified sampling (DSS), which is more convenient to use when there are two distinct groups. The DSS design attempts to find a way of diversifying, before sampling begins, between a set of telephone numbers that contains a large proportion of target numbers (the high-density block) and a set that contains a smaller proportion of target numbers (the medium-density block). It is possible to create more than two groups, but for BRFSS, only two groups are used. DSS sampling telephone numbers is more efficient than simple random sampling. For BRFSS the landline sampling ratio of high to medium density is 1:1.5.
+  
+  b) * The cellular telephone sample is randomly attributed from a sampling frame of confirmed cellular area code and prefix combinations. Cellular telephone respondents are randomly selected with each having equal probability of selection. States complete approximately 20% of their completed interviews with respondents on cell phones. CDC provides a distinct cellular telephone sample to each state, according to the total number of completes that the state is targeting for that year. Some of the numbers in the cell phone sample will reach respondents who have moved into other states. Each state completes the core BRFSS interview with respondents from other states. Data from out-of-state interviews are conveyed to the appropriate states at the end of each data-collection period.
+
+  c) * The survey can be classified as observational. Random assignment was not used in this survey. We can conclude that by reminding simple characteristic of random assignment, which is presence of treatment and control groups. The survey only assesses behavioral risk factors for different groups of population and does not carry out an experiment.
+
+** The study is generalizable, because DSS and CDC thoroughly representing whole population. Also, the study cannot provide causal conclusions.
+Causality can only be ensured when the only difference between two groups (e.g. treatment and control) is having treatment or not. As, I said, the survey is not an experiment, so by this point it is not causal either.
+
+    
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1:**
+
+The first question includes: how sleep time of an citizen have any effects on demographic problems specifically difficulty concentrating or remembering, especially for those category of citizens who do not get enough sleep (less than 4 hours).
+
+**Research quesion 2:**
+
+My next research question involves seeing the relativity of female and male US citiznes who have mental health problems and how it related to gender of participants.
+
+
+**Research quesion 3:**
+
+Third research question is releated to attitude to race in the last 30 days both physical symptoms and mental based on gender. There are many issues related to race in US that we get to hear via News. So, I want to know if female get worse stance than male or vice-versa or maybe equal.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+
+
+**Research quesion 1:**
+
+```{r}
+#The variable decide shows a difficulty concentrating or remembering, because of a physical, mental, or emotional condition. This variable measures whether respondents answer "Yes", "No".
+
+he_sl <- brfss2013 %>%
+  filter(!is.na(sleptim1),!is.na(decide)) %>%
+  select(sleptim1,decide)
+  
+or_he <- he_sl %>%
+  filter(sleptim1<8) %>%
+  group_by(decide) %>%
+  summarise(count=n())
+or_he
+
+ggplot(data=or_he, aes(x = decide,y = count))+geom_bar(stat = "identity", color = 'red',fill = 'blue')+xlab("Difficulty concentrating or remembering who have <8 hours of sleep?")+ylab("Number of US citizens ")
+
+
+or_he <- he_sl %>%
+  filter(sleptim1<6) %>%
+  group_by(decide) %>%
+  summarise(count=n())
+or_he
+
+ggplot(data=or_he, aes(x = decide,y = count))+geom_bar(stat = "identity", color = 'red',fill = 'blue')+xlab("Difficulty concentrating or remembering who have <6 hours of sleep?")+ylab("Number of US citizens ")
+
+
+or_he <- he_sl %>%
+  filter(sleptim1<4) %>%
+  group_by(decide) %>%
+  summarise(count=n())
+or_he
+
+ggplot(data=or_he, aes(x = decide,y = count))+geom_bar(stat = "identity", color = 'red',fill = 'blue')+xlab("Difficulty concentrating or remembering who have <4 hours of sleep?")+ylab("Number of US citizens ")
+```
+
+**From the bar diagrams**, we can see that people having uncertainty in decisions somehow connected with hours of sleep. However, we cannot conclude that the connection is straight, since it can be influenced by many other factors.
+
+
+
+
+
+**Research Question 2:**
+
+```{r}
+#The variable 'menthlth' will be used to assess the mental health status of the respondents. This variable measures how many days the respondent stated his or her mental state was "inaproptiate." 
+
+
+brfss2013_refined <- brfss2013 %>%
+  filter(!is.na(brfss2013$sex), !is.na(brfss2013$menthlth))
+```
+
+
+  The distribution of how mental health varies by gender will be acquired by plotting the count of "poor" mental health days against. how many days of the patricipants can be names as a bad mental health one The distribution will be separated by male and female so that a side by side comparison can be obtained.
+
+```{r}
+ggplot(aes(x=menthlth, fill=sex), data = brfss2013_refined[]) +
+  geom_histogram(bins=30, position = position_dodge()) + ggtitle('Number of Days Mental Health Not Good in the Past 30 Days') + scale_x_continuous(breaks = seq(0, 30, 2))
+```
+
+**From the distribution above**, we see how male and female participants reacted to how often they felt their mental health was bad in the past 30 days. From the graph, it appears the vast majority of respondents experienced little to no bad mental health days. Also, the graph makes it seem that women experience more bad mental health days than men, nonetheless, this could be a case of number of women participated in the survey.
+
+ 
+**Research quesion 3:**
+
+```{r}
+# The variable rrphysm2 characterizes whether participants felt physical symptoms due to their race or not.
+# The variable rremtsm2 displays whether participators felt mental problems because of their race or not.
+# The variable is answer to question "Are you 18 years of age or older?" and shows three levels of answers: "Yes, male respondent", "Yes, female respondent", NA.
+abuse <- brfss2013 %>%
+  filter(!is.na(rrphysm2),!is.na(rremtsm2),!is.na(cadult)) %>%
+  select(rrphysm2,rremtsm2,cadult)
+abuse <- abuse %>%
+  mutate(female= ifelse(cadult=="Yes, female respondent",1,0))
+gender_vio <- abuse %>%
+  filter(rrphysm2=="Yes" & rremtsm2=="Yes") %>%
+  group_by(female) %>%
+  summarise(count=n())
+val=c("Male","Female")
+ggplot(data=gender_vio,aes(x=female,y=count,col=val))+geom_bar(stat='identity',fill='red')
+```
+
+**From the bar graph**, we can clearly see that the number of males and females are not  equal. From this visualisation, we can say that, male and female in US states get different attitude to their race both mental and physical simultaneously However, this is only acceptable form for the data collected by BRFSS. It cannot be generalised to the whole population. This can be influenced by many side factors.
